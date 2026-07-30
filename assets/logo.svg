@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-labelledby="title">
+  <title id="title">StudyTogether logo</title>
+  <defs>
+    <linearGradient id="g" x1="8" y1="6" x2="40" y2="42" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8BFFB6"/>
+      <stop offset="1" stop-color="#4EE1FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="14" fill="#111722"/>
+  <path d="M13 15.5 24 10l11 5.5L24 21l-11-5.5Z" fill="url(#g)"/>
+  <path d="M16 20v8.2c0 2.7 3.6 5.3 8 5.3s8-2.6 8-5.3V20l-8 4-8-4Z" fill="none" stroke="url(#g)" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M35 16v11" stroke="#8BFFB6" stroke-width="2.4" stroke-linecap="round"/>
+  <circle cx="35" cy="29.5" r="2" fill="#8BFFB6"/>
+</svg>

@@ -1,289 +1,322 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StudyTogether 学习打卡台</title>
-  <style>
-    :root{
-      --bg:#0f172a; --panel:#111827; --panel2:#172033; --line:#2b3953;
-      --text:#e5eefc; --muted:#93a4bd; --accent:#60a5fa; --good:#34d399;
-      --warn:#fbbf24; --bad:#fb7185; --shadow:0 18px 50px rgba(0,0,0,.28);
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;background:linear-gradient(145deg,#0b1020,#121b30 55%,#0e1728);color:var(--text);min-height:100vh}
-    button,input,textarea,select{font:inherit}
-    .wrap{max-width:1180px;margin:auto;padding:28px}
-    .hero{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:22px}
-    h1{margin:0;font-size:clamp(28px,4vw,48px);letter-spacing:-.04em}
-    .subtitle{color:var(--muted);margin-top:8px;max-width:720px;line-height:1.7}
-    .badge{border:1px solid var(--line);padding:9px 13px;border-radius:999px;background:rgba(255,255,255,.035);color:#c9d7ea;white-space:nowrap}
-    .grid{display:grid;grid-template-columns:1.55fr .85fr;gap:20px}
-    .card{background:rgba(17,24,39,.86);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow);backdrop-filter:blur(14px)}
-    .card h2{margin:0 0 14px;font-size:19px}
-    .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-    .btn{border:1px solid var(--line);background:#17233a;color:var(--text);padding:10px 14px;border-radius:11px;cursor:pointer;transition:.18s}
-    .btn:hover{transform:translateY(-1px);border-color:#5272a2}
-    .btn.primary{background:linear-gradient(135deg,#2563eb,#3b82f6);border-color:#3b82f6}
-    .btn.good{background:#0f6b50;border-color:#1b9b73}
-    .btn.danger{background:#5c2230;border-color:#8b3148}
-    .meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
-    label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}
-    input,textarea,select{width:100%;background:#0e1628;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 11px;outline:none}
-    input:focus,textarea:focus{border-color:var(--accent)}
-    .task{display:grid;grid-template-columns:auto 1fr 110px auto;gap:10px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:13px;margin:9px 0;background:rgba(255,255,255,.025)}
-    .task.done{opacity:.68}
-    .task.done .task-title{text-decoration:line-through}
-    .check{width:20px;height:20px}
-    .task-title{font-weight:650}
-    .task-note{font-size:12px;color:var(--muted);margin-top:3px}
-    .minutes{text-align:right}
-    .remove{border:0;background:transparent;color:var(--bad);font-size:20px;cursor:pointer}
-    .progress-shell{height:14px;background:#0b1220;border-radius:999px;overflow:hidden;border:1px solid #23314a}
-    .progress-bar{height:100%;width:0;background:linear-gradient(90deg,#34d399,#60a5fa);transition:.3s}
-    .progress-text{display:flex;justify-content:space-between;margin:9px 0 16px;color:var(--muted);font-size:13px}
-    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .stat{background:#0e1628;border:1px solid var(--line);padding:14px;border-radius:13px;text-align:center}
-    .stat strong{display:block;font-size:26px;margin-bottom:3px}
-    textarea{min-height:112px;resize:vertical;line-height:1.6}
-    .guide{counter-reset:step}
-    .guide-item{position:relative;padding:0 0 18px 44px;color:#d5e0ef;line-height:1.65}
-    .guide-item:before{counter-increment:step;content:counter(step);position:absolute;left:0;top:0;width:29px;height:29px;border-radius:50%;display:grid;place-items:center;background:#1d4ed8;font-weight:800}
-    code{background:#0b1220;border:1px solid #263652;padding:2px 6px;border-radius:6px;color:#bfdbfe}
-    .footer-note{color:var(--muted);font-size:13px;line-height:1.65;margin-top:14px}
-    .week{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
-    .day{min-height:70px;border:1px solid var(--line);border-radius:11px;background:#0e1628;padding:8px;text-align:center}
-    .day .date{font-size:11px;color:var(--muted)}
-    .day .dot{width:11px;height:11px;border-radius:50%;background:#334155;margin:9px auto}
-    .day.done .dot{background:var(--good);box-shadow:0 0 15px rgba(52,211,153,.65)}
-    .small{font-size:12px;color:var(--muted)}
-    @media(max-width:850px){.grid{grid-template-columns:1fr}.hero{flex-direction:column}.meta{grid-template-columns:1fr}.task{grid-template-columns:auto 1fr auto}.minutes{grid-column:2/3;text-align:left}.stats{grid-template-columns:1fr 1fr 1fr}}
-  </style>
-</head>
-<body>
-<div class="wrap">
-  <div class="hero">
-    <div>
-      <h1>StudyTogether</h1>
-      <div class="subtitle">用于每日计划、学习打卡、复盘与 GitHub 留档。数据默认只保存在当前浏览器；完成后可一键导出 Markdown，再提交到 GitHub。</div>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+      name="description"
+      content="StudyTogether：面向计算机专业学生的远程学习监督、GitHub 学习记录与成长管理系统。"
+    >
+    <meta name="theme-color" content="#080b12">
+    <title>StudyTogether · CS 学习管理系统</title>
+    <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="css/style.css">
+  </head>
+  <body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="StudyTogether 首页">
+          <img src="assets/logo.svg" width="42" height="42" alt="">
+          <span>
+            <strong>StudyTogether</strong>
+            <small>CS Growth Console</small>
+          </span>
+        </a>
+
+        <div class="topbar-actions">
+          <span class="sync-status"><i></i> 数据已保存在本地</span>
+          <button class="icon-button" id="themeButton" type="button" aria-label="切换主题" title="切换主题">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"></path>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero" aria-labelledby="page-title">
+          <div>
+            <p class="eyebrow"><span></span><time id="fullDate"></time></p>
+            <h1 id="page-title">把每一天的努力，<br><em>变成看得见的成长。</em></h1>
+            <p class="hero-copy">远程学习监督 · GitHub 学习记录 · CS 成长系统</p>
+          </div>
+          <div class="hero-actions">
+            <button class="button button-secondary" id="exportButton" type="button">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"></path>
+              </svg>
+              导出今日日志
+            </button>
+            <button class="button button-primary" id="openTaskDialog" type="button">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M12 5v14M5 12h14"></path>
+              </svg>
+              新建任务
+            </button>
+          </div>
+        </section>
+
+        <section class="metric-grid" aria-label="今日学习数据">
+          <article class="metric-card">
+            <div class="metric-icon flame">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M12.5 3.5c.5 3-1.5 4.5-3 6.5-1.2 1.6-1 4 .5 5.2-.1-2.2 1.3-3.5 2.7-4.9.3 2.4 2.8 3.4 2.8 6.3 0 1.9-1.6 3.4-3.5 3.4a7 7 0 0 1-5.6-11.2c.3 2 1.2 3.1 2.3 3.8C8.1 8.4 10.1 6.6 12.5 3.5Z"></path>
+              </svg>
+            </div>
+            <div>
+              <span class="metric-label">连续学习天数</span>
+              <strong><b id="streakMetric">12</b><small>天</small></strong>
+              <p class="positive">保持住，状态正佳</p>
+            </div>
+          </article>
+
+          <article class="metric-card">
+            <div class="metric-icon target">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="8"></circle>
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M15 9l5-5m0 0v4m0-4h-4"></path>
+              </svg>
+            </div>
+            <div>
+              <span class="metric-label">今日完成率</span>
+              <strong><b id="completionMetric">50</b><small>%</small></strong>
+              <p id="completionHint">已完成 2 / 4 项任务</p>
+            </div>
+          </article>
+
+          <article class="metric-card">
+            <div class="metric-icon clock">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 7v5l3 2"></path>
+              </svg>
+            </div>
+            <div>
+              <span class="metric-label">学习时间</span>
+              <strong><b id="timeMetric">2.5</b><small>小时</small></strong>
+              <p>今日目标 4 小时</p>
+            </div>
+          </article>
+
+          <article class="metric-card">
+            <div class="metric-icon commit">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M3 12h6m6 0h6"></path>
+              </svg>
+            </div>
+            <div>
+              <span class="metric-label">GitHub Commits</span>
+              <strong><b id="commitMetric">18</b><small>次</small></strong>
+              <p class="positive">本周较上周 +20%</p>
+            </div>
+          </article>
+        </section>
+
+        <div class="dashboard-grid">
+          <div class="main-column">
+            <section class="panel tasks-panel" aria-labelledby="tasks-title">
+              <div class="panel-heading">
+                <div>
+                  <span class="section-kicker">TODAY</span>
+                  <h2 id="tasks-title">今日任务</h2>
+                </div>
+                <span class="panel-meta" id="taskCount">2 / 4 完成</span>
+              </div>
+              <div class="progress-track" aria-hidden="true">
+                <span id="taskProgress"></span>
+              </div>
+              <div class="task-list" id="taskList"></div>
+              <button class="add-task-row" id="openTaskDialogSecondary" type="button">
+                <span>＋</span> 添加学习任务
+              </button>
+            </section>
+
+            <section class="panel log-panel" aria-labelledby="log-title">
+              <div class="panel-heading">
+                <div>
+                  <span class="section-kicker">REFLECTION</span>
+                  <h2 id="log-title">学习日志</h2>
+                </div>
+                <span class="save-state" id="saveState">自动保存</span>
+              </div>
+              <div class="log-fields">
+                <label>
+                  <span>
+                    <i class="dot dot-green"></i>
+                    今天学会了什么
+                  </span>
+                  <textarea id="learnedInput" rows="3" placeholder="记录一个新知识、一次突破或值得保留的思路……"></textarea>
+                </label>
+                <label>
+                  <span>
+                    <i class="dot dot-orange"></i>
+                    遇到的问题
+                  </span>
+                  <textarea id="problemsInput" rows="3" placeholder="写下卡点、错误信息，以及你已经尝试过的方法……"></textarea>
+                </label>
+                <label>
+                  <span>
+                    <i class="dot dot-blue"></i>
+                    明日计划
+                  </span>
+                  <textarea id="tomorrowInput" rows="3" placeholder="确定明天最重要的 1–3 件事……"></textarea>
+                </label>
+              </div>
+            </section>
+
+            <section class="panel github-panel" aria-labelledby="github-title">
+              <div class="panel-heading">
+                <div class="title-with-icon">
+                  <span class="github-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.87c-2.78.6-3.37-1.18-3.37-1.18-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.35 1.09 2.92.83.09-.65.35-1.09.64-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.82a9.5 9.5 0 0 1 2.5.34c1.9-1.29 2.74-1.02 2.74-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.86V21c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"></path>
+                    </svg>
+                  </span>
+                  <div>
+                    <span class="section-kicker">ACTIVITY</span>
+                    <h2 id="github-title">GitHub 学习记录</h2>
+                  </div>
+                </div>
+                <a class="text-link" href="https://github.com/HECAI200510/study-together" target="_blank" rel="noreferrer">
+                  查看仓库
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"></path></svg>
+                </a>
+              </div>
+
+              <div class="github-summary">
+                <div>
+                  <strong id="githubTotal">18</strong>
+                  <span>本月 Commits</span>
+                </div>
+                <div>
+                  <strong id="activeDays">14</strong>
+                  <span>活跃天数</span>
+                </div>
+                <div>
+                  <strong>6</strong>
+                  <span>学习仓库</span>
+                </div>
+              </div>
+
+              <div class="heatmap-wrap">
+                <div class="heatmap-header">
+                  <span>学习热力图</span>
+                  <span class="heatmap-legend">少 <i></i><i></i><i></i><i></i><i></i> 多</span>
+                </div>
+                <div class="heatmap" id="heatmap" role="img" aria-label="最近十六周学习活跃度占位图"></div>
+              </div>
+
+              <div class="recent-commits">
+                <h3>最近提交</h3>
+                <ul id="commitList"></ul>
+              </div>
+            </section>
+          </div>
+
+          <aside class="side-column">
+            <section class="panel growth-panel" aria-labelledby="growth-title">
+              <div class="panel-heading">
+                <div>
+                  <span class="section-kicker">GROWTH</span>
+                  <h2 id="growth-title">成长统计</h2>
+                </div>
+                <span class="level-chip">LV. 7</span>
+              </div>
+              <div class="level-overview">
+                <div class="level-ring" aria-label="当前等级进度 72%">
+                  <span>72<small>%</small></span>
+                </div>
+                <div>
+                  <strong>进阶学习者</strong>
+                  <p>距离 LV. 8 还需 280 XP</p>
+                  <div class="xp-track"><span></span></div>
+                  <small>720 / 1000 XP</small>
+                </div>
+              </div>
+              <dl class="growth-stats">
+                <div>
+                  <dt>总学习时间</dt>
+                  <dd>126.5 <small>小时</small></dd>
+                </div>
+                <div>
+                  <dt>最长连续</dt>
+                  <dd>21 <small>天</small></dd>
+                </div>
+                <div>
+                  <dt>完成任务</dt>
+                  <dd id="totalTasks">148 <small>项</small></dd>
+                </div>
+              </dl>
+            </section>
+
+            <section class="panel focus-panel" aria-labelledby="focus-title">
+              <div class="panel-heading compact">
+                <h2 id="focus-title">本周学习分布</h2>
+                <span>24.5h</span>
+              </div>
+              <div class="focus-list" id="focusList"></div>
+            </section>
+
+            <section class="quote-card">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M7 17h3l2-4V7H6v6h3l-2 4Zm9 0h3l2-4V7h-6v6h3l-2 4Z"></path>
+              </svg>
+              <blockquote>“The best way to predict the future is to invent it.”</blockquote>
+              <cite>— Alan Kay</cite>
+            </section>
+          </aside>
+        </div>
+      </main>
+
+      <footer>
+        <span>StudyTogether · Build in public, grow together.</span>
+        <span>所有数据仅保存在当前浏览器</span>
+      </footer>
     </div>
-    <div class="badge" id="todayBadge"></div>
-  </div>
 
-  <div class="grid">
-    <main>
-      <section class="card">
-        <h2>今日学习计划</h2>
-        <div class="meta">
-          <div><label>学习者</label><input id="student" placeholder="例如：Alex" /></div>
-          <div><label>学习方向</label><input id="track" placeholder="例如：CS / Python / 英语" /></div>
-          <div><label>目标专注时长（分钟）</label><input id="target" type="number" min="0" value="120" /></div>
+    <dialog id="taskDialog">
+      <form id="taskForm" method="dialog">
+        <div class="dialog-heading">
+          <div>
+            <span class="section-kicker">NEW TASK</span>
+            <h2>添加学习任务</h2>
+          </div>
+          <button class="dialog-close" type="button" id="closeTaskDialog" aria-label="关闭">×</button>
         </div>
-
-        <div class="toolbar">
-          <button class="btn primary" onclick="addTask()">＋ 添加任务</button>
-          <button class="btn good" onclick="exportMarkdown()">导出今日 Markdown</button>
-          <button class="btn" onclick="copyMarkdown()">复制提交内容</button>
-          <button class="btn danger" onclick="resetToday()">清空今日</button>
+        <label>
+          任务名称
+          <input id="taskTitleInput" name="title" maxlength="60" placeholder="例如：完成二叉树遍历练习" required>
+        </label>
+        <div class="dialog-row">
+          <label>
+            分类
+            <select id="taskCategoryInput" name="category">
+              <option value="编程">编程</option>
+              <option value="算法">算法</option>
+              <option value="课程">课程</option>
+              <option value="阅读">阅读</option>
+            </select>
+          </label>
+          <label>
+            预计时长（分钟）
+            <input id="taskMinutesInput" name="minutes" type="number" min="5" max="480" step="5" value="45">
+          </label>
         </div>
-
-        <div id="taskList"></div>
-      </section>
-
-      <section class="card" style="margin-top:20px">
-        <h2>今日复盘</h2>
-        <label>今天学会了什么</label>
-        <textarea id="learned" placeholder="用自己的话写，不要只写“看完了”。"></textarea>
-        <label style="margin-top:12px">遇到的问题</label>
-        <textarea id="problems" placeholder="记录卡点、错误信息、没懂的概念。"></textarea>
-        <label style="margin-top:12px">明日计划</label>
-        <textarea id="tomorrow" placeholder="明天最重要的 1—3 件事。"></textarea>
-      </section>
-    </main>
-
-    <aside>
-      <section class="card">
-        <h2>完成情况</h2>
-        <div class="progress-shell"><div class="progress-bar" id="progressBar"></div></div>
-        <div class="progress-text"><span id="progressLabel">0 / 0 项</span><span id="percentLabel">0%</span></div>
-        <div class="stats">
-          <div class="stat"><strong id="doneCount">0</strong><span class="small">已完成</span></div>
-          <div class="stat"><strong id="minutesDone">0</strong><span class="small">完成分钟</span></div>
-          <div class="stat"><strong id="streak">0</strong><span class="small">连续天数</span></div>
+        <div class="dialog-actions">
+          <button class="button button-secondary" type="button" id="cancelTaskDialog">取消</button>
+          <button class="button button-primary" type="submit">添加任务</button>
         </div>
-      </section>
+      </form>
+    </dialog>
 
-      <section class="card" style="margin-top:20px">
-        <h2>本周记录</h2>
-        <div class="week" id="week"></div>
-        <div class="footer-note">当当天所有任务完成后，本周记录会标绿。记录存储在浏览器的 LocalStorage 中。</div>
-      </section>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-      <section class="card" style="margin-top:20px">
-        <h2>让朋友上传到 GitHub</h2>
-        <div class="guide">
-          <div class="guide-item">在 GitHub 新建仓库，例如 <code>study-log</code>，建议先设为 <b>Private</b>。</div>
-          <div class="guide-item">每天完成后点击本页的“导出今日 Markdown”，得到类似 <code>daily/2026-07-30.md</code> 的文件。</div>
-          <div class="guide-item">进入仓库，点击 <code>Add file → Upload files</code>，把 Markdown、代码作业和少量截图拖进去。</div>
-          <div class="guide-item">提交信息写清楚，例如 <code>Day 01: Python basics and 2 exercises</code>，然后 Commit。</div>
-          <div class="guide-item">你负责每周看一次：是否有实际代码、笔记是否具体、计划是否按时完成。不要只数绿色格子。</div>
-        </div>
-      </section>
-    </aside>
-  </div>
-</div>
-
-<script>
-const keyDate = new Date().toISOString().slice(0,10);
-const storageKey = 'study-dashboard-' + keyDate;
-const historyKey = 'study-dashboard-history';
-
-let state = {
-  student:'', track:'', target:120,
-  tasks:[
-    {title:'主课程学习', note:'完成今天计划的章节或视频', minutes:45, done:false},
-    {title:'编程练习', note:'至少提交一个可运行文件', minutes:45, done:false},
-    {title:'英语 / 阅读', note:'记录新词或一段摘要', minutes:30, done:false}
-  ],
-  learned:'', problems:'', tomorrow:''
-};
-
-function load(){
-  const saved = localStorage.getItem(storageKey);
-  if(saved) state = JSON.parse(saved);
-  ['student','track','target','learned','problems','tomorrow'].forEach(id=>{
-    document.getElementById(id).value = state[id] ?? '';
-  });
-  document.getElementById('todayBadge').textContent = '今日 · ' + keyDate;
-  render();
-}
-function save(){
-  ['student','track','target','learned','problems','tomorrow'].forEach(id=>{
-    const el=document.getElementById(id);
-    state[id]=id==='target'?Number(el.value||0):el.value;
-  });
-  localStorage.setItem(storageKey,JSON.stringify(state));
-  updateHistory();
-  renderStats();
-}
-function addTask(){
-  state.tasks.push({title:'新任务',note:'写清楚可验证的完成标准',minutes:30,done:false});
-  save(); render();
-}
-function removeTask(i){state.tasks.splice(i,1);save();render()}
-function render(){
-  const list=document.getElementById('taskList');
-  list.innerHTML='';
-  state.tasks.forEach((t,i)=>{
-    const row=document.createElement('div');
-    row.className='task'+(t.done?' done':'');
-    row.innerHTML=`
-      <input class="check" type="checkbox" ${t.done?'checked':''} aria-label="完成任务">
-      <div>
-        <input class="task-title" value="${escapeHtml(t.title)}" aria-label="任务标题">
-        <input class="task-note" value="${escapeHtml(t.note)}" aria-label="任务说明" style="margin-top:6px">
-      </div>
-      <input class="minutes" type="number" min="0" value="${t.minutes}" aria-label="分钟">
-      <button class="remove" title="删除">×</button>`;
-    const inputs=row.querySelectorAll('input');
-    inputs[0].onchange=e=>{t.done=e.target.checked;save();render()};
-    inputs[1].oninput=e=>{t.title=e.target.value;save()};
-    inputs[2].oninput=e=>{t.note=e.target.value;save()};
-    inputs[3].oninput=e=>{t.minutes=Number(e.target.value||0);save()};
-    row.querySelector('button').onclick=()=>removeTask(i);
-    list.appendChild(row);
-  });
-  renderStats(); renderWeek();
-}
-function renderStats(){
-  const done=state.tasks.filter(t=>t.done);
-  const percent=state.tasks.length?Math.round(done.length/state.tasks.length*100):0;
-  document.getElementById('progressBar').style.width=percent+'%';
-  document.getElementById('progressLabel').textContent=`${done.length} / ${state.tasks.length} 项`;
-  document.getElementById('percentLabel').textContent=percent+'%';
-  document.getElementById('doneCount').textContent=done.length;
-  document.getElementById('minutesDone').textContent=done.reduce((a,b)=>a+Number(b.minutes||0),0);
-  document.getElementById('streak').textContent=calcStreak();
-}
-function updateHistory(){
-  const history=JSON.parse(localStorage.getItem(historyKey)||'{}');
-  history[keyDate]=state.tasks.length>0 && state.tasks.every(t=>t.done);
-  localStorage.setItem(historyKey,JSON.stringify(history));
-}
-function calcStreak(){
-  const h=JSON.parse(localStorage.getItem(historyKey)||'{}');
-  let d=new Date(), count=0;
-  for(let i=0;i<365;i++){
-    const k=d.toISOString().slice(0,10);
-    if(h[k]) count++; else if(i>0) break;
-    d.setDate(d.getDate()-1);
-  }
-  return count;
-}
-function renderWeek(){
-  const box=document.getElementById('week'); box.innerHTML='';
-  const h=JSON.parse(localStorage.getItem(historyKey)||'{}');
-  const now=new Date(); const day=(now.getDay()+6)%7;
-  const monday=new Date(now); monday.setDate(now.getDate()-day);
-  for(let i=0;i<7;i++){
-    const d=new Date(monday); d.setDate(monday.getDate()+i);
-    const k=d.toISOString().slice(0,10);
-    const el=document.createElement('div');
-    el.className='day'+(h[k]?' done':'');
-    el.innerHTML=`<div class="date">${['一','二','三','四','五','六','日'][i]}<br>${k.slice(5)}</div><div class="dot"></div>`;
-    box.appendChild(el);
-  }
-}
-function md(){
-  const done=state.tasks.filter(t=>t.done).length;
-  const taskText=state.tasks.map(t=>`- [${t.done?'x':' '}] ${t.title}（${t.minutes} 分钟）${t.note?' — '+t.note:''}`).join('\n');
-  return `# 学习日志 ${keyDate}
-
-- 学习者：${state.student||'未填写'}
-- 学习方向：${state.track||'未填写'}
-- 完成情况：${done}/${state.tasks.length}
-- 目标专注时长：${state.target||0} 分钟
-
-## 今日任务
-
-${taskText}
-
-## 今天学会了什么
-
-${state.learned||'未填写'}
-
-## 遇到的问题
-
-${state.problems||'未填写'}
-
-## 明日计划
-
-${state.tomorrow||'未填写'}
-`;
-}
-function exportMarkdown(){
-  save();
-  const blob=new Blob([md()],{type:'text/markdown;charset=utf-8'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob); a.download=keyDate+'.md'; a.click();
-  URL.revokeObjectURL(a.href);
-}
-async function copyMarkdown(){
-  save();
-  try{await navigator.clipboard.writeText(md());alert('已复制 Markdown 内容');}
-  catch(e){alert('复制失败，请使用导出按钮。');}
-}
-function resetToday(){
-  if(!confirm('确定清空今天的数据吗？')) return;
-  localStorage.removeItem(storageKey); location.reload();
-}
-function escapeHtml(s=''){
-  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-}
-document.addEventListener('input',e=>{
-  if(['student','track','target','learned','problems','tomorrow'].includes(e.target.id)) save();
-});
-load();
-</script>
-</body>
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+  </body>
 </html>
